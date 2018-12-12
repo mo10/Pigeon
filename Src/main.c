@@ -1,17 +1,16 @@
 /* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
 #include "main.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
-#include "st7735.h"
 #include "usbd_customhid.h"
+#include "st7735.h"
 #include "usb_cmd.h"
-#include <stdio.h>
 /* Private typedef -----------------------------------------------------------*/
 
 /* Private define ------------------------------------------------------------*/
-#define CMD_BUF_HEAD  0x22
-#define CMD_BUF_END   0x33
+
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
@@ -24,52 +23,6 @@ static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
-
-uint16_t recv_data_len=0;
-uint16_t need_data_len=0;
-bool isRecv=false;
-USB_CMD_RetypeDef parse(uint8_t* buf,uint32_t* len){
-  USB_CMD_BUFTypeDef* cmd_buf = (USB_CMD_BUFTypeDef*)buf;
-  
-  if(*len == sizeof(USB_CMD_BUFTypeDef) /* 长度检查 */
-    && cmd_buf->head == CMD_BUF_HEAD  /* 标志头检查 */
-    && cmd_buf->end == CMD_BUF_END){  /* 标志尾检查 */
-    switch(cmd_buf->cmd){
-      case USB_CMD_DRAWIMAGE:
-        // 绘制图片
-        ST7735_SetDrawArea(cmd_buf->data[0], cmd_buf->data[1],
-                            cmd_buf->data[2], cmd_buf->data[3]);
-        recv_data_len=0;
-        need_data_len=cmd_buf->length;
-        isRecv=true;
-        return USB_CMD_OK;
-      case USB_CMD_STOP:
-        // 停止传输
-        recv_data_len=0;
-        need_data_len=0;
-        isRecv=false;
-        return USB_CMD_OK;
-    }
-  }else if(*len > 0 && isRecv){
-    // 包长度大于0 并且已设置传输标志
-    uint16_t pre_len = *len + recv_data_len; // 预计算已接收数据量
-    if (pre_len < need_data_len || pre_len == need_data_len){
-      // 预接收长度小于等于需要数据量
-      ST7735_DrawBuffer(buf,*len); // 在屏幕上绘图
-      recv_data_len = pre_len;
-      if (recv_data_len == need_data_len)
-        isRecv=false;
-    }else if(pre_len > need_data_len){
-      // 超出设置长度范围,停止绘制
-      recv_data_len=0;
-      need_data_len=0;
-      isRecv=false;
-      return USB_CMD_FAIL;
-    }
-  }
-  return USB_CMD_OK;
-}
-
 uint8_t USB_EP_OUT_CALLBACK(USBD_HandleTypeDef *pdev, uint8_t epnum){
   uint32_t usb_data_size = USBD_LL_GetRxDataSize(pdev,epnum);
   // 检查是否从ep2out发来数据 并判断数据长度
@@ -82,7 +35,7 @@ uint8_t USB_EP_OUT_CALLBACK(USBD_HandleTypeDef *pdev, uint8_t epnum){
                                                       hhid->Report_buf,
                                                       CUSTOM_HID_EP2OUT_SIZE);
     // USB_HAL状态
-    USB_CMD_RetypeDef ret = parse(hhid->Report_buf,&usb_data_size);
+    USB_CMD_RetypeDef ret = USB_CMD_Parse(hhid->Report_buf,&usb_data_size);
     while(USBD_HID_SendData(pdev,CUSTOM_HID_EP2IN_ADDR,&ret,1) == USBD_OK);
   }
   return USBD_OK;
@@ -94,7 +47,7 @@ uint8_t USB_EP_OUT_CALLBACK(USBD_HandleTypeDef *pdev, uint8_t epnum){
 int main(void)
 {
   /* MCU Configuration--------------------------------------------------------*/
-
+  USB_CMD_BootSwitcher();
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -114,7 +67,6 @@ int main(void)
 
   ST7735_FillScreen(ST7735_BLACK);
   ST7735_print("Boot Done!", Font_7x10, ST7735_WHITE, ST7735_BLACK);
-
   /* Infinite loop */
   while (1)
   {
@@ -233,7 +185,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LCD_DC_Pin|LCD_RST_Pin|LCD_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LCD_BACKLIGHT_Pin|LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LCD_BACKLIGHT_Pin|LED_Pin|BOOT0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LCD_DC_Pin LCD_RST_Pin LCD_CS_Pin */
   GPIO_InitStruct.Pin = LCD_DC_Pin|LCD_RST_Pin|LCD_CS_Pin;
@@ -243,12 +195,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LCD_BACKLIGHT_Pin LED_Pin */
-  GPIO_InitStruct.Pin = LCD_BACKLIGHT_Pin|LED_Pin;
+  GPIO_InitStruct.Pin = LCD_BACKLIGHT_Pin|LED_Pin|BOOT0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */

@@ -98,6 +98,9 @@ void Error_Handler(void);
 #define LCD_BACKLIGHT_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_1
 #define LED_GPIO_Port GPIOB
+#define BOOT0_Pin GPIO_PIN_8
+#define BOOT0_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -109,7 +112,3 @@ void Error_Handler(void);
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-// ______PC实际发送结构体______
-// |                         |
-// 1a 2b 33 22 3c 4d 5e 6f 80 11 22 33 44 55 66 77 88 99 
-// |____________Struct_________|

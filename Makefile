@@ -37,6 +37,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/st7735.c \
+Src/usb_cmd.c \
 Src/fonts.c \
 Src/main.c \
 Src/usb_device.c \
