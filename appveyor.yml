@@ -23,5 +23,5 @@ build_script:
  - make
 
 artifacts:
- - path: build/
+ - path: build/*.elf build/*.hex build/*.bin
    name: Build
