@@ -1,0 +1,22 @@
+image: Ubuntu1804
+
+environment:
+  BUILD_HOME: "/home/appveyor/projects"
+  TOOLCHAIN_HOME: "/home/appveyor/toolchain"
+
+  TOOLCHAIN_URL: https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+
+init:
+
+install:
+  # Install Toolchain
+  - mkdir "%TOOLCHAIN_HOME%"
+  - appveyor DownloadFile "%TOOLCHAIN_URL%" -FileName "gcc-arm-none-eabi.tar.bz2"
+  - 7z x "gcc-arm-none-eabi.tar.bz2" -o "%TOOLCHAIN_HOME%"
+  - set PATH=%PATH%;"%TOOLCHAIN_HOME%\bin"
+
+build: off
+
+before_build: off
+build_script:
+ - make
