@@ -11,9 +11,9 @@ init:
 install:
   # Install Toolchain
   - mkdir "$TOOLCHAIN_HOME"
-  - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "gcc-arm-none-eabi.tar.bz2"
-  - 7z x "gcc-arm-none-eabi.tar.bz2" -o "$TOOLCHAIN_HOME"
-  - export PATH="$PATH:$TOOLCHAIN_HOME/bin"
+  - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
+  - tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
+  - export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi/bin"
 
 build: off
 
