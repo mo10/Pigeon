@@ -21,3 +21,7 @@ build: off
 build_script:
  - echo "Start build..."
  - make
+
+artifacts:
+ - path: build/
+   name: Build
