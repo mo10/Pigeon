@@ -1,4 +1,4 @@
-image: Ubuntu1804
+image: Ubuntu
 
 environment:
   BUILD_HOME: "/home/appveyor/projects"
@@ -10,10 +10,10 @@ init:
 
 install:
   # Install Toolchain
-  - mkdir "%TOOLCHAIN_HOME%"
-  - appveyor DownloadFile "%TOOLCHAIN_URL%" -FileName "gcc-arm-none-eabi.tar.bz2"
-  - 7z x "gcc-arm-none-eabi.tar.bz2" -o "%TOOLCHAIN_HOME%"
-  - set PATH=%PATH%;"%TOOLCHAIN_HOME%\bin"
+  - mkdir "$TOOLCHAIN_HOME"
+  - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "gcc-arm-none-eabi.tar.bz2"
+  - 7z x "gcc-arm-none-eabi.tar.bz2" -o "$TOOLCHAIN_HOME"
+  - export PATH="$PATH:$TOOLCHAIN_HOME/bin"
 
 build: off
 
