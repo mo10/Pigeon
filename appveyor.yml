@@ -12,10 +12,12 @@ install:
   # Install Toolchain
   - mkdir "$TOOLCHAIN_HOME"
   - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
-  - tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
+  - echo "Unpack Toolchain..."
+  - tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2" -C $TOOLCHAIN_HOME 1> /dev/null
   - export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi-7-2018-q2-update/bin"
 
 build: off
 
 build_script:
+ - echo "Start build..."
  - make
