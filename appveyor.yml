@@ -13,10 +13,9 @@ install:
   - mkdir "$TOOLCHAIN_HOME"
   - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
   - tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
-  - export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi/bin"
+  - export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi-7-2018-q2-update/bin"
 
 build: off
 
-before_build: off
 build_script:
  - make
