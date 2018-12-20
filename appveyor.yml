@@ -25,3 +25,9 @@ build_script:
 artifacts:
  - path: build/*.elf build/*.hex build/*.bin
    name: Build
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: UJvLV2sU0F+95nz3pnGyD1qmfln+rWu2PqcImHFbLdHi8N0BbiLyhVUO+t4BZTCl
+  artifact: Build
+  prerelease: true
