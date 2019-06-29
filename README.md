@@ -15,3 +15,9 @@ More information about this core board please check:https://www.eefrog.net/?p=44
 ## Desktop application
 Preparing to develop a new application.  
 you can find the application designed for the prototype [here](https://github.com/mo10/Mini-LCD-Controller).
+
+## License
+MIT License Copyright (c) 2018 某10  
+
+### Logo License
+The `Dove` icon is licensed under the Creative Commons Attribution 4.0 International license.[Link to the license](https://fontawesome.com/license)
