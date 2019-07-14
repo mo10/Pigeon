@@ -20,7 +20,7 @@ build: off
 
 build_script:
  - echo "Start build..."
- - cd $BUILD_HOME\Firmware\prototype\
+ - cd $BUILD_HOME/Firmware/prototype/
  - make
 
 artifacts:
