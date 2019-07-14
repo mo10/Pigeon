@@ -24,7 +24,7 @@ build_script:
  - make
 
 artifacts:
- - path: $PROTOTYPE_BUILD_HOME/build/*.elf $PROTOTYPE_BUILD_HOME/build/*.hex $PROTOTYPE_BUILD_HOME/build/*.bin
+ - path: build/*.elf build/*.hex build/*.bin
    name: Build
 deploy:
 - provider: GitHub
