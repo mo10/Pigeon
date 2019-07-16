@@ -3,5 +3,7 @@ Hardware/__Previews/*
 Hardware/Model/*
 Hardware/Project Logs for Pigeon/*
 Hardware/Project Outputs for Pigeon/*
-build/*
-bin/*
+Firmware/Pigeon/build/*
+Firmware/Pigeon/bin/*
+Firmware/prototype/build/*
+Firmware/prototype/bin/*
