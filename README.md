@@ -3,7 +3,7 @@
 The pigeon is a 0.96 inch mini USB screen based on STM32F042
 
 ## Photos
-<img src="./Images/DSC_0630.jpg" width="500" />
+<img src="./Images/DSC_0630.JPG" width="500" />
 You can find more photos [here](./Images).
 
 ## TODO List
