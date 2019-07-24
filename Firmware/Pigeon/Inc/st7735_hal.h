@@ -3,6 +3,7 @@
 
 #include "fonts.h"
 #include "main.h"
+#include "stm32f0xx_hal.h"
 #include <stdbool.h>
 
 #define ST7735_MADCTL_MY  0x80
@@ -21,11 +22,11 @@
 #define ST7735_RES_Pin       LCD_RST_Pin
 #define ST7735_RES_GPIO_Port LCD_RST_GPIO_Port
 /* 片选 */
-#define ST7735_CS_Pin        SPI1_NSS_Pin
-#define ST7735_CS_GPIO_Port  SPI1_NSS_GPIO_Port
+#define ST7735_CS_Pin        SPI1_CS_Pin
+#define ST7735_CS_GPIO_Port  SPI1_CS_GPIO_Port
 /* 模式 */
-#define ST7735_DC_Pin        LCD_RS_Pin
-#define ST7735_DC_GPIO_Port  LCD_RS_GPIO_Port
+#define ST7735_DC_Pin        LCD_DC_Pin
+#define ST7735_DC_GPIO_Port  LCD_DC_GPIO_Port
 
 // mini 160x80 display (it's unlikely you want the default orientation)
 
@@ -108,6 +109,7 @@
 // extern uint8_t ST7735_buffer;
 
 // call before initializing any SPI devices
+// void ST7735_SelectData()
 void ST7735_Unselect();
 uint8_t ST7735_IsReady();
 void ST7735_Init(SPI_HandleTypeDef * hspi);

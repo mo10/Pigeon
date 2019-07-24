@@ -1,7 +1,6 @@
 @echo off
 cd /d %~dp0
+::setting up path
+SET PATH=%PATH%;%~dp0\bin
 
-set BASE_PATH=%~dp0
-
-.\bin\make.exe
-.\bin\make.exe install
+make %*

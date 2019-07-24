@@ -22,13 +22,13 @@
 #include "main.h"
 #include "spi.h"
 #include "tim.h"
-#include "usb.h"
+#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "st7735_hal.h"
-
+// #include "usb_cmd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,6 +51,7 @@
 /* USER CODE BEGIN PV */
 extern TIM_HandleTypeDef htim2;
 extern SPI_HandleTypeDef hspi1;
+uint8_t b=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,19 +95,33 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
-  MX_USB_PCD_Init();
+  MX_USB_DEVICE_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2); //�?启PWM
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   ST7735_Init(&hspi1);
-  ST7735_FillScreen(ST7735_BLACK);
-  ST7735_print("Boot Done!", Font_7x10, ST7735_WHITE, ST7735_BLACK);
+  ST7735_FillScreen(ST7735_WHITE);
+  //ST7735_print("Boot Done!", Font_7x10, ST7735_WHITE, ST7735_BLACK);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //按下按键
+      {
+        HAL_Delay(20); //按键延时消抖
+        if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //按键仍在按下状�??
+        {
+          
+          while(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //等待松开按键
+          {
+            __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, b++);
+            HAL_Delay(10);
+          }
+          
+        }
+      }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
