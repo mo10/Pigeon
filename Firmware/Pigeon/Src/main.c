@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "st7735_hal.h"
+#include "usbd_customhid.h"
 // #include "usb_cmd.h"
 /* USER CODE END Includes */
 
@@ -51,7 +52,26 @@
 /* USER CODE BEGIN PV */
 extern TIM_HandleTypeDef htim2;
 extern SPI_HandleTypeDef hspi1;
+extern USBD_HandleTypeDef hUsbDeviceFS;
 uint8_t b=0;
+/* keybuf[0] -bit0: Left CTRL
+ *           -bit1: Left SHIFT
+ *           -bit2: Left ALT
+ *           -bit3: Left GUI
+ *           -bit4: Right CTRL
+ *           -bit5: Right SHIFT
+ *           -bit6: Right ALT
+ *           -bit7: Right GUI 
+ * keybuf[1] - Padding = Always 0x00
+ * keybuf[2] - Key 1
+ * keybuf[3] - Key 2
+ * keybuf[4] - Key 3
+ * keybuf[5] - Key 4
+ * keybuf[6] - Key 5
+ * keybuf[7] - Key 6
+ */
+ uint8_t keybuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t sth[13]={0x1e,0x1e,0x21,0x22,0x1e,0x21,0x1e,0x26,0x1e,0x26,0x25,0x1e,0x27};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,7 +82,17 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void keyPress(){
+  for (int i = 0; i < 13; ++i)
+  {
+    keybuf[2]=sth[i];
+    while(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, keybuf, 8)); //发送键值
+    HAL_Delay(11);
+    keybuf[2]=0x00;
+    while(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, keybuf, 8)); //发送键值
+    HAL_Delay(11);
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -101,25 +131,23 @@ int main(void)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   ST7735_Init(&hspi1);
   ST7735_FillScreen(ST7735_WHITE);
-  //ST7735_print("Boot Done!", Font_7x10, ST7735_WHITE, ST7735_BLACK);
+  ST7735_print("KOKODAYO!", Font_7x10, ST7735_RED, ST7735_WHITE);
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 50);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //按下按键
+    if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
       {
-        HAL_Delay(20); //按键延时消抖
-        if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //按键仍在按下状�??
+        HAL_Delay(20);
+        if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
         {
-          
-          while(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET) //等待松开按键
+          while(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
           {
-            __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, b++);
-            HAL_Delay(10);
           }
-          
+          keyPress();
         }
       }
     /* USER CODE END WHILE */

@@ -337,8 +337,11 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   /* USER CODE END EndPoint_Configuration */
   /* USER CODE BEGIN EndPoint_Configuration_CUSTOM_HID */
   HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , CUSTOM_HID_EPIN_ADDR , PCD_SNG_BUF, 0x98);
-  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , CUSTOM_HID_EPOUT_ADDR , PCD_SNG_BUF, 0xD8);
   /* USER CODE END EndPoint_Configuration_CUSTOM_HID */
+  /* USER CODE BEGIN EndPoint_Configuration_WINUSB */
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , WINUSB_EPIN_ADDR , PCD_SNG_BUF, 0xD8);
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , WINUSB_EPOUT_ADDR , PCD_SNG_BUF, 0x118);
+  /* USER CODE END EndPoint_Configuration_WINUSB */
   return USBD_OK;
 }
 

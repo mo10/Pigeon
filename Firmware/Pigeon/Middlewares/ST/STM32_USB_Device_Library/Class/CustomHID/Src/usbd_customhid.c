@@ -147,7 +147,7 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   USB_CUSTOM_HID_CONFIG_DESC_SIZ,
   /* wTotalLength: Bytes returned */
   0x00,
-  0x02,         /*bNumInterfaces: 1 interface*/
+  0x02,         /*bNumInterfaces: 2 interfaces*/
   0x01,         /*bConfigurationValue: Configuration value*/
   0x04,         /*iConfiguration: Index of string descriptor describing
   the configuration*/
@@ -160,11 +160,11 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   USB_DESC_TYPE_INTERFACE,/*bDescriptorType: Interface descriptor type*/
   0x00,         /*bInterfaceNumber: Number of Interface*/
   0x00,         /*bAlternateSetting: Alternate setting*/
-  0x02,         /*bNumEndpoints*/
+  0x01,         /*bNumEndpoints*/
   0x03,         /*bInterfaceClass: CUSTOM_HID*/
-  0x00,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
+  0x01,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
   0x01,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
-  0x05,            /*iInterface: Index of string descriptor*/
+  0x05,         /*iInterface: Index of string descriptor*/
   /******************** Descriptor of CUSTOM_HID *************************/
   /* 18 */
   0x09,         /*bLength: CUSTOM_HID Descriptor size*/
@@ -180,41 +180,40 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   /* 27 */
   0x07,          /*bLength: Endpoint Descriptor size*/
   USB_DESC_TYPE_ENDPOINT, /*bDescriptorType:*/
-  
   CUSTOM_HID_EPIN_ADDR,     /*bEndpointAddress: Endpoint Address (IN)*/
   0x03,          /*bmAttributes: Interrupt endpoint*/
-  CUSTOM_HID_EPIN_SIZE, /*wMaxPacketSize: 2 Byte max */
+  CUSTOM_HID_EPIN_SIZE, /*wMaxPacketSize: 8 Byte max */
   0x00,
-  0x20,          /*bInterval: Polling Interval (20 ms)*/
-  /* 34 */
-  
-  0x07,	         /* bLength: Endpoint Descriptor size */
-  USB_DESC_TYPE_ENDPOINT,	/* bDescriptorType: */
-  CUSTOM_HID_EPOUT_ADDR,  /*bEndpointAddress: Endpoint Address (OUT)*/
-  0x03,	/* bmAttributes: Interrupt endpoint */
-  CUSTOM_HID_EPOUT_SIZE,	/* wMaxPacketSize: 2 Bytes max  */
-  0x00,
-  0x20,	/* bInterval: Polling Interval (20 ms) */
+  0x02,          /*bInterval: Polling Interval (2 ms)*/
   /************** Descriptor of WINUSB interface ****************/
-  /* 41 */
+  /* 34‬ */
   0x09,         /*bLength: Interface Descriptor size*/
   USB_DESC_TYPE_INTERFACE,/*bDescriptorType: Interface descriptor type*/
   0x01,         /*bInterfaceNumber: Number of Interface*/
   0x00,         /*bAlternateSetting: Alternate setting*/
-  0x01,         /*bNumEndpoints*/
+  0x02,         /*bNumEndpoints*/
   0xFF,         /*bInterfaceClass: Vendor define*/
   0x00,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
   0x00,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
-  0x06,            /*iInterface: Index of string descriptor*/
+  0x06,         /*iInterface: Index of string descriptor*/
   /******************** Descriptor of WINUSB endpoints ********************/
-  /* 50 */
-  0x07,          /* bLength: Endpoint Descriptor size */
-  USB_DESC_TYPE_ENDPOINT, /* bDescriptorType: */
-  WINUSB_EPOUT_ADDR,  /*bEndpointAddress: Endpoint Address (OUT)*/
-  0x02, /* bmAttributes: Bulk endpoint */
-  WINUSB_EPOUT_SIZE,  /* wMaxPacketSize: 64 Bytes max  */
+  /* 43 */
+  0x07,                    /* bLength: Endpoint Descriptor size */
+  USB_DESC_TYPE_ENDPOINT,  /* bDescriptorType: */
+  WINUSB_EPOUT_ADDR,       /*bEndpointAddress: Endpoint Address (OUT)*/
+  0x02,                    /* bmAttributes: Bulk endpoint */
+  WINUSB_EPOUT_SIZE,       /* wMaxPacketSize: 64 Bytes max  */
   0x00,
-  0x0, /* bInterval: Polling Interval (20 ms) */
+  0x0,                     /* bInterval: Polling Interval (0 ms) */
+  /* 50 */
+
+  0x07,                    /*bLength: Endpoint Descriptor size*/
+  USB_DESC_TYPE_ENDPOINT,  /*bDescriptorType:*/
+  WINUSB_EPIN_ADDR,        /*bEndpointAddress: Endpoint Address (IN)*/
+  0x03,                    /*bmAttributes: Interrupt endpoint*/
+  WINUSB_EPIN_SIZE,        /*wMaxPacketSize: 8 Byte max */
+  0x00,
+  0x02,                    /*bInterval: Polling Interval (2 ms)*/
   /* 57 */
 } ;
 
@@ -274,16 +273,18 @@ static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev,
                  USBD_EP_TYPE_INTR,
                  CUSTOM_HID_EPIN_SIZE);  
   
-  /* Open EP OUT */
+  /* Open EP IN */
   USBD_LL_OpenEP(pdev,
-                 CUSTOM_HID_EPOUT_ADDR,
+                 WINUSB_EPIN_ADDR,
                  USBD_EP_TYPE_INTR,
-                 CUSTOM_HID_EPOUT_SIZE);
+                 WINUSB_EPIN_SIZE);
+
   /* Open EP OUT */
   USBD_LL_OpenEP(pdev,
                  WINUSB_EPOUT_ADDR,
-                 USBD_EP_TYPE_INTR,
+                 USBD_EP_TYPE_BULK,
                  WINUSB_EPOUT_SIZE);
+
   pdev->pClassData = USBD_malloc(sizeof (USBD_CUSTOM_HID_HandleTypeDef));
   
   if(pdev->pClassData == NULL)
@@ -297,7 +298,7 @@ static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev,
     hhid->state = CUSTOM_HID_IDLE;
     ((USBD_CUSTOM_HID_ItfTypeDef *)pdev->pUserData)->Init();
           /* Prepare Out endpoint to receive 1st packet */ 
-    USBD_LL_PrepareReceive(pdev, CUSTOM_HID_EPOUT_ADDR, hhid->Report_buf, 
+    USBD_LL_PrepareReceive(pdev, WINUSB_EPOUT_ADDR, hhid->Report_buf, 
                            USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
   }
     
@@ -317,10 +318,12 @@ static uint8_t  USBD_CUSTOM_HID_DeInit (USBD_HandleTypeDef *pdev,
   /* Close CUSTOM_HID EP IN */
   USBD_LL_CloseEP(pdev,
                   CUSTOM_HID_EPIN_ADDR);
+  USBD_LL_CloseEP(pdev,
+                  WINUSB_EPIN_ADDR);
   
   /* Close CUSTOM_HID EP OUT */
   USBD_LL_CloseEP(pdev,
-                  CUSTOM_HID_EPOUT_ADDR);
+                  WINUSB_EPOUT_ADDR);
   
   /* FRee allocated memory */
   if(pdev->pClassData != NULL)
@@ -493,7 +496,7 @@ static uint8_t  USBD_CUSTOM_HID_DataOut (USBD_HandleTypeDef *pdev,
   ((USBD_CUSTOM_HID_ItfTypeDef *)pdev->pUserData)->OutEvent(hhid->Report_buf[0], 
                                                             hhid->Report_buf[1]);
     
-  USBD_LL_PrepareReceive(pdev, CUSTOM_HID_EPOUT_ADDR , hhid->Report_buf, 
+  USBD_LL_PrepareReceive(pdev, WINUSB_EPOUT_ADDR , hhid->Report_buf, 
                          USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
 
   return USBD_OK;
