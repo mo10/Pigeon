@@ -27,8 +27,8 @@ You can find more photos [here](./Images).
 Pigeon's splash screen image uses RLE (Run-length encoding) data format.Other parts do not follow this encoding.  
 Please note that it is not a standard RLE structure.  
 Each RLE data consists of 16-bit data (2-bit color index and 14-bit pixel continuous length).  
-The binary format is: `CCLL LLLL  LLLL LLLL`
-`CC` is a color index value, which ranges from 0 to 3. Support four colors in total.
+The binary format is: `CCLL LLLL  LLLL LLLL`  
+`CC` is a color index value, which ranges from 0 to 3. Support four colors in total.  
 `LLLLLLLLLLLLLL` is the length of consecutive pixels, and its bit length is determined by the highest bit of the number of pixels on the screen.For example,Pigeon's screen resolution is 80x160. 80x160 = B110010 00000000.Its binary length is 14 bits.If you want to use it at other resolutions, this part may need to be recalculated.
 
 ### Customize
