@@ -1,23 +1,49 @@
-/* vim: set ai et ts=4 sw=4: */
-#include "stm32f0xx_hal.h"
-// #include "main.h"
 #include "st7735_hal.h"
 
-#define DELAY 0x80
-
-static SPI_HandleTypeDef * hspi1;
+SPI_HandleTypeDef * hspi;
 // static uint8_t ST7735_buffer[ST7735_WIDTH*2];
 uint8_t current_x=0;
 uint8_t current_y=0;
+
 uint8_t isReady=0;
-struct ST7735_cmdBuf {
-  uint8_t pack;
-  uint8_t command;   // ST7735 command byte
-  uint8_t delay;     // ms delay after
-  uint8_t len;       // length of parameter data
-  uint8_t data[16];  // parameter data
+
+ST7735_ProfileTypDef *cur_profile;
+
+ST7735_ProfileTypDef profiles[] = {
+    {
+        /* 旋转方向 左 */
+        .XStart = 1,
+        .YStart = 26,
+        .Width  = 160,
+        .Height = 80,
+        .Rotate = (ST7735_MADCTL_MX | ST7735_MADCTL_MV | ST7735_MADCTL_BGR),
+    },
+    {
+        /* 旋转方向 右 */
+        .XStart = 1,
+        .YStart = 26,
+        .Width  = 160,
+        .Height = 80,
+        .Rotate = (ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_BGR),
+    },
+    {
+        /* 旋转方向 上 */
+        .XStart = 26,
+        .YStart = 1,
+        .Width  = 80,
+        .Height = 160,
+        .Rotate = (ST7735_MADCTL_MX | ST7735_MADCTL_MY | ST7735_MADCTL_BGR),
+    },
+    {
+        /* 旋转方向 下 */
+        .XStart = 26,
+        .YStart = 1,
+        .Width  = 80,
+        .Height = 160,
+        .Rotate = (ST7735_MADCTL_BGR),
+    },
 };
-struct ST7735_cmdBuf init_cmd[] = {
+ST7735_CMD_BUFTypeDef init_cmd[] = {
   // SWRESET Software reset 
   { 0, ST7735_SWRESET, 150, 0, {0}},
   // SLPOUT Leave sleep mode
@@ -44,7 +70,7 @@ struct ST7735_cmdBuf init_cmd[] = {
   // INVOFF Don't invert display
   { 0, ST7735_INVOFF,  0, 0, {0}},
   // Memory access directions. row address/col address, bottom to top refesh (10.1.27)
-  { 0, ST7735_MADCTL,  0, 1, { ST7735_ROTATION }},
+  { 0, ST7735_MADCTL,  0, 1, {0}},
   // Color mode 16 bit (10.1.30
   { 0, ST7735_COLMOD,  0, 1, { 0x05 }},
   // Column address set 0..127 
@@ -70,6 +96,10 @@ struct ST7735_cmdBuf init_cmd[] = {
   { 0, 0, 0, 0, {0}}
 };
 
+uint8_t ST7735_IsReady(){
+    return isReady;
+}
+
 void ST7735_Select() {
     HAL_GPIO_WritePin(ST7735_CS_GPIO_Port, ST7735_CS_Pin, GPIO_PIN_RESET);
 }
@@ -78,70 +108,68 @@ void ST7735_Unselect() {
     HAL_GPIO_WritePin(ST7735_CS_GPIO_Port, ST7735_CS_Pin, GPIO_PIN_SET);
 }
 
-static void ST7735_Reset() {
+void ST7735_Reset() {
     HAL_GPIO_WritePin(ST7735_RES_GPIO_Port, ST7735_RES_Pin, GPIO_PIN_RESET);
     HAL_Delay(10);
     HAL_GPIO_WritePin(ST7735_RES_GPIO_Port, ST7735_RES_Pin, GPIO_PIN_SET);
 }
 
-static void ST7735_WriteCommand(uint8_t cmd) {
+void ST7735_WriteCommand(uint8_t cmd) {
     HAL_GPIO_WritePin(ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(hspi1, &cmd, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(hspi, &cmd, 1, HAL_MAX_DELAY);
 }
 
-static void ST7735_WriteData(uint8_t* buff, uint32_t buff_size) {
+void ST7735_WriteData(uint8_t* buff, uint32_t buff_size) {
     HAL_GPIO_WritePin(ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_SET);
-    // int len;
-    // for (len=0;len<buff_size;len++){
-    //   while(HAL_SPI_Transmit(hspi1, buff+len, 1, 0)==HAL_TIMEOUT);
-    // }
-    // if (buff_size%2)buff_size++;
-    HAL_SPI_Transmit(hspi1, buff, buff_size, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(hspi, buff, buff_size, HAL_MAX_DELAY);
 }
-
 
 void ST7735_SetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
     // column address set
     ST7735_WriteCommand(ST7735_CASET);
-    uint8_t data[] = { 0x00, x0 + ST7735_XSTART, 0x00, x1 + ST7735_XSTART };
+    uint8_t data[] = { 0x00, x0 + cur_profile->XStart, 0x00, x1 + cur_profile->XStart };
     ST7735_WriteData(data, sizeof(data));
 
     // row address set
     ST7735_WriteCommand(ST7735_RASET);
-    data[1] = y0 + ST7735_YSTART;
-    data[3] = y1 + ST7735_YSTART;
+    data[1] = y0 + cur_profile->YStart;
+    data[3] = y1 + cur_profile->YStart;
     ST7735_WriteData(data, sizeof(data));
 
     // write to RAM
     ST7735_WriteCommand(ST7735_RAMWR);
 }
 
-void ST7735_Init(SPI_HandleTypeDef * hspi) {
-    hspi1=hspi;
-    struct ST7735_cmdBuf *cmd;
+void ST7735_SetProfile(uint8_t idx){
+    cur_profile = &profiles[idx];
+}
+
+void ST7735_Init(SPI_HandleTypeDef * spi) {
+    hspi=spi;
+    ST7735_CMD_BUFTypeDef *cmd;
+
+    // 复位ST7735
     ST7735_Unselect();
     ST7735_Reset();
-    HAL_Delay(5);
     ST7735_Select();
 
-    // Send initialization commands to ST7735
+    // 发送初始化指令
     for (cmd = init_cmd; cmd->command; cmd++)
     {
       ST7735_WriteCommand(cmd->command);
       if (cmd->len){
-        ST7735_WriteData(cmd->data,cmd->len);
+        ST7735_WriteData((cmd->command == ST7735_MADCTL?&cur_profile->Rotate:cmd->data),cmd->len);
       }
       if (cmd->delay)
         HAL_Delay(cmd->delay);
     }
+
     ST7735_Unselect();
     isReady=1;
 }
-uint8_t ST7735_IsReady(){
-  return isReady;
-}
+
 void ST7735_DrawPixel(uint16_t x, uint16_t y, uint16_t color) {
-    if((x >= ST7735_WIDTH) || (y >= ST7735_HEIGHT))
+    if((x >= cur_profile->Width) || (y >= cur_profile->Height))
         return;
 
     ST7735_Select();
@@ -158,6 +186,7 @@ void ST7735_DrawBuffer(uint8_t* buf,uint16_t len) {
     ST7735_WriteData(buf, len);
     ST7735_Unselect();
 }
+
 void ST7735_SetDrawArea(uint16_t startX, uint16_t startY,uint16_t endX, uint16_t endY) {
     ST7735_Select();
     ST7735_SetAddressWindow(startX, startY, endX-1, endY-1);
@@ -182,31 +211,14 @@ void ST7735_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t co
     }
 }
 
-/*
-Simpler (and probably slower) implementation:
-
-void ST7735_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color) {
-    uint32_t i, b, j;
-
-    for(i = 0; i < font.height; i++) {
-        b = font.data[(ch - 32) * font.height + i];
-        for(j = 0; j < font.width; j++) {
-            if((b << j) & 0x8000)  {
-                ST7735_DrawPixel(x + j, y + i, color);
-            } 
-        }
-    }
-}
-*/
-
 uint8_t ST7735_WriteString(uint16_t x, uint16_t y, const char* str, FontDef font, uint16_t color, uint16_t bgcolor) {
     ST7735_Select();
 
     while(*str) {
-        if(x + font.width >= ST7735_WIDTH) {
+        if(x + font.width >= cur_profile->Width) {
             x = 0;
             y += font.height;
-            if(y + font.height >= ST7735_HEIGHT) {
+            if(y + font.height >= cur_profile->Height) {
                 break;
             }
             if(*str == ' ') {
@@ -224,11 +236,11 @@ uint8_t ST7735_WriteString(uint16_t x, uint16_t y, const char* str, FontDef font
     ST7735_Unselect();
     return x;
 }
-void ST7735_FillRectangle2(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void ST7735_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     // clipping
-    if((x >= ST7735_WIDTH) || (y >= ST7735_HEIGHT)) return;
-    if((x + w - 1) >= ST7735_WIDTH) w = ST7735_WIDTH - x;
-    if((y + h - 1) >= ST7735_HEIGHT) h = ST7735_HEIGHT - y;
+    if((x >= cur_profile->Width) || (y >= cur_profile->Height)) return;
+    if((x + w - 1) >= cur_profile->Width) w = cur_profile->Width - x;
+    if((y + h - 1) >= cur_profile->Height) h = cur_profile->Height - y;
 
     ST7735_Select();
     ST7735_SetAddressWindow(x, y, x+w-1, y+h-1);
@@ -244,47 +256,47 @@ void ST7735_FillRectangle2(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint1
     ST7735_Unselect();
 }
 
-void ST7735_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
-  uint8_t ST7735_buffer[ST7735_WIDTH];
-    // clipping
-    if((x >= ST7735_WIDTH) || (y >= ST7735_HEIGHT)) return;
-    if((x + w - 1) >= ST7735_WIDTH) w = ST7735_WIDTH - x;
-    if((y + h - 1) >= ST7735_HEIGHT) h = ST7735_HEIGHT - y;
+// void ST7735_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+//   uint8_t ST7735_buffer[ST7735_WIDTH];
+//     // clipping
+//     if((x >= ST7735_WIDTH) || (y >= ST7735_HEIGHT)) return;
+//     if((x + w - 1) >= ST7735_WIDTH) w = ST7735_WIDTH - x;
+//     if((y + h - 1) >= ST7735_HEIGHT) h = ST7735_HEIGHT - y;
 
-    ST7735_Select();
+//     ST7735_Select();
 
-    for (int i = 0; i < sizeof(ST7735_buffer);i++)
-    {
-      ST7735_buffer[i]=color >> 8;
-      i++;
-      ST7735_buffer[i]=color & 0xFF;
-    }
+//     for (int i = 0; i < sizeof(ST7735_buffer);i++)
+//     {
+//       ST7735_buffer[i]=color >> 8;
+//       i++;
+//       ST7735_buffer[i]=color & 0xFF;
+//     }
 
-    HAL_GPIO_WritePin(ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_SET);
-    for(y = 0; h>y; y+=2) {
-      ST7735_SetAddressWindow(0, y, w-1, y);
-      ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
-      ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
-    }
-    for(y = 1; h>y; y+=2) {
-      ST7735_SetAddressWindow(0, y, w-1, y);
-      ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
-      ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
-    }
+//     HAL_GPIO_WritePin(ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_SET);
+//     for(y = 0; h>y; y+=2) {
+//       ST7735_SetAddressWindow(0, y, w-1, y);
+//       ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
+//       ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
+//     }
+//     for(y = 1; h>y; y+=2) {
+//       ST7735_SetAddressWindow(0, y, w-1, y);
+//       ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
+//       ST7735_WriteData(ST7735_buffer, sizeof(ST7735_buffer));
+//     }
 
-    ST7735_Unselect();
-}
+//     ST7735_Unselect();
+// }
 
 void ST7735_FillScreen(uint16_t color) {
-    ST7735_FillRectangle(0, 0, ST7735_WIDTH, ST7735_HEIGHT, color);
+    ST7735_FillRectangle(0, 0, cur_profile->Width, cur_profile->Height, color);
     current_y=0;
     current_x=0;
 }
 
 void ST7735_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t* data) {
-    if((x >= ST7735_WIDTH) || (y >= ST7735_HEIGHT)) return;
-    if((x + w - 1) >= ST7735_WIDTH) return;
-    if((y + h - 1) >= ST7735_HEIGHT) return;
+    if((x >= cur_profile->Width) || (y >= cur_profile->Height)) return;
+    if((x + w - 1) >= cur_profile->Width) return;
+    if((y + h - 1) >= cur_profile->Height) return;
 
     ST7735_Select();
     ST7735_SetAddressWindow(x, y, x+w-1, y+h-1);
@@ -302,10 +314,10 @@ void ST7735_print(const char* str,FontDef font, uint16_t color, uint16_t bgcolor
   ST7735_Select();
 
   while(*str) {
-    if(current_x>= ST7735_WIDTH) {
+    if(current_x>= cur_profile->Width) {
       current_x = 0;
       current_y += font.height;
-      if(current_y + font.height >= ST7735_HEIGHT) {
+      if(current_y + font.height >= cur_profile->Height) {
         current_y=0;
       }
 
@@ -319,7 +331,7 @@ void ST7735_print(const char* str,FontDef font, uint16_t color, uint16_t bgcolor
       // 换行符处理
       str++;
       current_x = 0;
-      if(current_y + font.height >= ST7735_HEIGHT)
+      if(current_y + font.height >= cur_profile->Height)
         current_y=0;
       else
         current_y += font.height;
@@ -340,10 +352,10 @@ void ST7735_println(const char* str,FontDef font, uint16_t color, uint16_t bgcol
     ST7735_Select();
 
   while(*str) {
-    if(current_x + font.width >= ST7735_WIDTH) {
+    if(current_x + font.width >= cur_profile->Width) {
       current_x = 0;
       current_y += font.height;
-      if(current_y + font.height >= ST7735_HEIGHT) {
+      if(current_y + font.height >= cur_profile->Height) {
         current_y=0;
       }
 
@@ -357,7 +369,7 @@ void ST7735_println(const char* str,FontDef font, uint16_t color, uint16_t bgcol
       // 换行符处理
       str++;
       current_x = 0;
-      if(current_y + font.height >= ST7735_HEIGHT)
+      if(current_y + font.height >= cur_profile->Height)
         current_y=0;
       else
         current_y += font.height;
@@ -370,10 +382,24 @@ void ST7735_println(const char* str,FontDef font, uint16_t color, uint16_t bgcol
   }
   //换行
   current_x = 0;
-  if(current_y + font.height >= ST7735_HEIGHT)
+  if(current_y + font.height >= cur_profile->Height)
     current_y=0;
   else
     current_y += font.height;
   ST7735_Unselect();
 }
 
+void ST7735_DrawRLE(uint16_t *colorTab, uint16_t *data, uint16_t len){
+    ST7735_SetDrawArea(0,0,cur_profile->Width,cur_profile->Height);
+    ST7735_Select();
+    // Decode RLE Data
+    for(uint16_t i = 0; i < len; i++){
+        uint8_t colorIdx = (data[i] >> 14) & 0xff;
+        uint16_t pixelLen = data[i] & 0x3fff;
+
+        for (uint16_t j = 0; j < pixelLen; j++){
+            uint8_t pixel[] = { colorTab[colorIdx] >> 8, colorTab[colorIdx] & 0xFF };
+            ST7735_WriteData(pixel, sizeof(pixel)/sizeof(uint8_t));
+        }
+    }
+}

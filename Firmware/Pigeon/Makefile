@@ -36,6 +36,7 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Src/eeprom.c \
 Src/st7735_hal.c \
 Src/fonts.c \
 Src/main.c \

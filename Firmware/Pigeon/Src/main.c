@@ -27,6 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "eeprom.h"
 #include "st7735_hal.h"
 #include "usbd_customhid.h"
 // #include "usb_cmd.h"
@@ -129,10 +130,15 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  
+  EEPROM_TypeDef *eep = EEPROM_GetData();
+  // Set Screen Profile
+  ST7735_SetProfile(eep->ProfileIdx);
   ST7735_Init(&hspi1);
-  ST7735_FillScreen(ST7735_WHITE);
-  ST7735_print("KOKODAYO!", Font_7x10, ST7735_RED, ST7735_WHITE);
-  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 50);
+  // Draw Boot Screen
+  ST7735_DrawRLE(eep->ColorTab,eep->RLEData,eep->RLELen);
+  // Set Brightness
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, eep->Brightness);
   /* USER CODE END 2 */
 
   /* Infinite loop */

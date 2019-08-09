@@ -3,20 +3,7 @@
 
 #include "fonts.h"
 #include "main.h"
-#include "stm32f0xx_hal.h"
 #include <stdbool.h>
-
-#define ST7735_MADCTL_MY  0x80
-#define ST7735_MADCTL_MX  0x40
-#define ST7735_MADCTL_MV  0x20
-#define ST7735_MADCTL_ML  0x10
-#define ST7735_MADCTL_RGB 0x00
-#define ST7735_MADCTL_BGR 0x08
-#define ST7735_MADCTL_MH  0x04
-
-/*** Redefine if necessary ***/
-// #define ST7735_SPI_PORT hspi1
-// extern SPI_HandleTypeDef ST7735_SPI_PORT;
 
 /* 复位 */
 #define ST7735_RES_Pin       LCD_RST_Pin
@@ -28,26 +15,14 @@
 #define ST7735_DC_Pin        LCD_DC_Pin
 #define ST7735_DC_GPIO_Port  LCD_DC_GPIO_Port
 
-// mini 160x80 display (it's unlikely you want the default orientation)
 
-// #define ST7735_IS_160X80 1
-// #define ST7735_XSTART 26
-// #define ST7735_YSTART 1
-// #define ST7735_WIDTH  80
-// #define ST7735_HEIGHT 160 
-// #define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MY | ST7735_MADCTL_BGR)
-
-
-// mini 160x80, rotate right 
-
-#define ST7735_IS_160X80 1
-#define ST7735_XSTART 1
-#define ST7735_YSTART 26
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 80
-#define ST7735_ROTATION (ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_BGR)
-
-/****************************/
+#define ST7735_MADCTL_MY  0x80
+#define ST7735_MADCTL_MX  0x40
+#define ST7735_MADCTL_MV  0x20
+#define ST7735_MADCTL_ML  0x10
+#define ST7735_MADCTL_RGB 0x00
+#define ST7735_MADCTL_BGR 0x08
+#define ST7735_MADCTL_MH  0x04
 
 #define ST7735_NOP     0x00
 #define ST7735_SWRESET 0x01
@@ -106,13 +81,27 @@
 #define ST7735_WHITE   0xFFFF
 #define ST7735_COLOR565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 
-// extern uint8_t ST7735_buffer;
+#define DELAY 0x80
 
-// call before initializing any SPI devices
-// void ST7735_SelectData()
-void ST7735_Unselect();
+typedef struct ST7735_cmdBuf {
+  uint8_t pack;
+  uint8_t command;   // ST7735 command byte
+  uint8_t delay;     // ms delay after
+  uint8_t len;       // length of parameter data
+  uint8_t data[16];  // parameter data
+}ST7735_CMD_BUFTypeDef;
+
+typedef struct ST7735_Profile{
+    uint8_t XStart;
+    uint8_t YStart;
+    uint8_t Width;
+    uint8_t Height;
+    uint8_t Rotate;
+}ST7735_ProfileTypDef;
+
 uint8_t ST7735_IsReady();
-void ST7735_Init(SPI_HandleTypeDef * hspi);
+void ST7735_SetProfile(uint8_t idx);
+void ST7735_Init(SPI_HandleTypeDef * spi);
 void ST7735_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
 uint8_t ST7735_WriteString(uint16_t x, uint16_t y, const char* str, FontDef font, uint16_t color, uint16_t bgcolor);
 void ST7735_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
@@ -122,6 +111,12 @@ void ST7735_InvertColors(bool invert);
 void ST7735_print(const char* str,FontDef font, uint16_t color, uint16_t bgcolor);
 void ST7735_println(const char* str,FontDef font, uint16_t color, uint16_t bgcolor);
 
-void ST7735_DrawBuffer(uint8_t* buf,uint16_t len);
 void ST7735_SetDrawArea(uint16_t startX, uint16_t startY,uint16_t endX, uint16_t endY);
+void ST7735_WriteData(uint8_t* buff, uint32_t buff_size);
+
+void ST7735_Select();
+void ST7735_Unselect();
+void ST7735_SetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
+
+void ST7735_DrawRLE(uint16_t *colorTab, uint16_t *data, uint16_t len);
 #endif // __ST7735_H__
