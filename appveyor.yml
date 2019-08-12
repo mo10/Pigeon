@@ -10,22 +10,31 @@ init:
 
 install:
   # Install Toolchain
-  - sh: |
+  - sh: >-
     mkdir "$TOOLCHAIN_HOME"
+
     echo -e "\e[93mDownload Toolchain...\e[0m"
+
     appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
+
     echo -e "\e[93mInstall Toolchain...\e[0m"
+
     tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2" -C $TOOLCHAIN_HOME 1> /dev/null
+
     export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi-7-2018-q2-update/bin"
+
     echo -e "\e[93mDownload done.\e[0m"
 
 build: off
 
 build_script:
-  - sh: |
+  - sh: >-
     echo -e "\e[93mBuild start...\e[0m"
+
     cd $PROTOTYPE_BUILD_HOME
+
     make
+    
     echo -e "\e[93mBuild done...\e[0m"
 
 artifacts:
