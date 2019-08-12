@@ -10,7 +10,7 @@ init:
 
 install:
   # Install Toolchain
-  - sh: >-
+- sh: >-
     mkdir "$TOOLCHAIN_HOME"
 
     echo -e "\e[93mDownload Toolchain...\e[0m"
@@ -28,13 +28,13 @@ install:
 build: off
 
 build_script:
-  - sh: >-
+- sh: >-
     echo -e "\e[93mBuild start...\e[0m"
 
     cd $PROTOTYPE_BUILD_HOME
 
     make
-    
+
     echo -e "\e[93mBuild done...\e[0m"
 
 artifacts:
