@@ -1,5 +1,6 @@
 # Pigeon
-[![Build status](https://ci.appveyor.com/api/projects/status/dknss50comsbu9fj?svg=true)](https://ci.appveyor.com/project/mo10/stm32-mini-lcd)  
+[![Build status](https://ci.appveyor.com/api/projects/status/dk4i84v9su4nx652?svg=true)](https://ci.appveyor.com/project/mo10/pigeon)
+
 The pigeon is a 0.96 inch mini USB screen based on STM32F042
 
 ## Photos

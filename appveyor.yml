@@ -1,7 +1,7 @@
 image: Ubuntu
 
 environment:
-  PROTOTYPE_BUILD_HOME: "/home/appveyor/projects/pigeon/Firmware/prototype/"
+  BUILD_HOME: "/home/appveyor/projects/Pigeon/Firmware/Pigeon/"
   TOOLCHAIN_HOME: "/home/appveyor/toolchain"
 
   TOOLCHAIN_URL: "https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
@@ -10,25 +10,31 @@ init:
 
 install:
   # Install Toolchain
-  - mkdir "$TOOLCHAIN_HOME"
-  - appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
-  - echo "Unpack Toolchain..."
-  - tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2" -C $TOOLCHAIN_HOME 1> /dev/null
-  - export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi-7-2018-q2-update/bin"
+  - sh: |
+    mkdir "$TOOLCHAIN_HOME"
+    echo -e "\e[93mDownload Toolchain...\e[0m"
+    appveyor DownloadFile "$TOOLCHAIN_URL" -FileName "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2"
+    echo -e "\e[93mInstall Toolchain...\e[0m"
+    tar -jxvf "$TOOLCHAIN_HOME/gcc-arm-none-eabi.tar.bz2" -C $TOOLCHAIN_HOME 1> /dev/null
+    export PATH="$PATH:$TOOLCHAIN_HOME/gcc-arm-none-eabi-7-2018-q2-update/bin"
+    echo -e "\e[93mDownload done.\e[0m"
 
 build: off
 
 build_script:
- - echo "Start build Prototype..."
- - cd $PROTOTYPE_BUILD_HOME
- - make
+  - sh: |
+    echo -e "\e[93mBuild start...\e[0m"
+    cd $PROTOTYPE_BUILD_HOME
+    make
+    echo -e "\e[93mBuild done...\e[0m"
 
 artifacts:
  - path: build/*.elf build/*.hex build/*.bin
    name: Build
-deploy:
-- provider: GitHub
-  auth_token:
-    secure: UJvLV2sU0F+95nz3pnGyD1qmfln+rWu2PqcImHFbLdHi8N0BbiLyhVUO+t4BZTCl
-  artifact: Build
-  prerelease: true
+
+# deploy:
+# - provider: GitHub
+#   auth_token:
+#     secure: UJvLV2sU0F+95nz3pnGyD1qmfln+rWu2PqcImHFbLdHi8N0BbiLyhVUO+t4BZTCl
+#   artifact: Build
+#   prerelease: true
