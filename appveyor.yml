@@ -31,7 +31,7 @@ build_script:
 - sh: >-
     echo -e "\e[93mBuild start...\e[0m"
 
-    cd $PROTOTYPE_BUILD_HOME
+    cd $BUILD_HOME
 
     make
 
