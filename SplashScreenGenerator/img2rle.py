@@ -25,12 +25,12 @@ def MergeByte(sequence):
         result.append(tmp)
     return result
 
-img = Image.open('BootScreen2.png')
+img = Image.open('BootScreen1.png')
 rgb_im = img.convert('RGB')
 pixels=[]
 ColorTab=[]
-for x in range(bmp_image.height):
-   for y in range(bmp_image.width):
+for x in range(img.height):
+   for y in range(img.width):
         r, g, b = rgb_im.getpixel((y, x))
         hasColorTab = False
         for idx in range(len(ColorTab)):
@@ -43,7 +43,7 @@ for x in range(bmp_image.height):
             pixels.append(str(len(ColorTab)))
             ColorTab.append((r,g,b))
 
-bmp_image.close()
+img.close()
 
 ORLEenc = RLEencode(pixels)
 ORLEenc = MergeByte(ORLEenc)

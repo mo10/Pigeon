@@ -27,6 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "bootloader.h"
 #include "eeprom.h"
 #include "st7735_hal.h"
 #include "usbd_customhid.h"
@@ -103,7 +104,7 @@ void keyPress(){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  BOOTLOADER_Init();
   /* USER CODE END 1 */
   
 
