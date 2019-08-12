@@ -6,7 +6,7 @@
 typedef struct EEPROM{
     uint8_t  ProfileIdx;
     uint8_t  KeyDef;
-    KEY_REPORT_TypeDef KeyReports[];
+    // KEY_REPORT_TypeDef KeyReports[];
     uint8_t  Brightness;
     uint16_t ColorTab[4];
     uint16_t RLELen;

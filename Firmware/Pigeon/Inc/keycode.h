@@ -42,7 +42,7 @@
 #define KEY_F11             0xCC
 #define KEY_F12             0xCD
 
-typedef KEY_REPORT{
+typedef struct KEY_REPORT{
     uint8_t modifiers;
     uint8_t reserved;
     uint8_t keys[6];
