@@ -38,7 +38,7 @@ build_script:
     echo -e "\e[93mBuild done...\e[0m"
 
 artifacts:
- - path: build/*.elf build/*.hex build/*.bin
+ - path: Firmware/Pigeon/build/*.elf Firmware/Pigeon/build/*.hex Firmware/Pigeon/build/*.bin
    name: Build
 
 # deploy:
