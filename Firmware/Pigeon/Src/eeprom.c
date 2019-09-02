@@ -6,8 +6,6 @@ EEPROM_TypeDef _eep __attribute__ ((section(".eeprom"),used))= {
   .ProfileIdx = 0,
   /* Key function setting */
   .KeyDef = EEPROM_KEY_BOTH,
-  // .KeyStrLen = 12,
-  // .KeyStr = 'H','e','l','l','o',' ','w','o','r','l','d','!',
   /* Screen brightness */
   .Brightness = 10,
   /* Default color table */

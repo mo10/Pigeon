@@ -3,10 +3,10 @@
 
 #include "st7735_hal.h"
 #include "keycode.h"
+
 typedef struct EEPROM{
     uint8_t  ProfileIdx;
     uint8_t  KeyDef;
-    // KEY_REPORT_TypeDef KeyReports[];
     uint8_t  Brightness;
     uint16_t ColorTab[4];
     uint16_t RLELen;
@@ -19,7 +19,7 @@ typedef enum Key
     EEPROM_KEY_KBD,
     EEPROM_KEY_EVENT,
     EEPROM_KEY_BOTH,
-}EEPROM_KeyTypeDef;
+} EEPROM_KeyTypeDef;
 
 EEPROM_TypeDef * EEPROM_GetData();
 
