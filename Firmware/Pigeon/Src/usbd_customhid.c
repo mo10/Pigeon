@@ -51,44 +51,6 @@
 #include "usbd_ctlreq.h"
 
 
-/** @addtogroup STM32_USB_DEVICE_LIBRARY
-  * @{
-  */
-
-
-/** @defgroup USBD_CUSTOM_HID 
-  * @brief usbd core module
-  * @{
-  */ 
-
-/** @defgroup USBD_CUSTOM_HID_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBD_CUSTOM_HID_Private_Defines
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBD_CUSTOM_HID_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-/** @defgroup USBD_CUSTOM_HID_Private_FunctionPrototypes
-  * @{
-  */
-
-
 static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev, 
                                uint8_t cfgidx);
 
@@ -161,22 +123,22 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   0x00,         /*bInterfaceNumber: Number of Interface*/
   0x00,         /*bAlternateSetting: Alternate setting*/
   0x01,         /*bNumEndpoints*/
-  0x03,         /*bInterfaceClass: CUSTOM_HID*/
+  0x03,         /*bInterfaceClass: HID*/
   0x01,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
   0x01,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
   0x05,         /*iInterface: Index of string descriptor*/
-  /******************** Descriptor of CUSTOM_HID *************************/
+  /******************** Descriptor of HID *************************/
   /* 18 */
-  0x09,         /*bLength: CUSTOM_HID Descriptor size*/
-  CUSTOM_HID_DESCRIPTOR_TYPE, /*bDescriptorType: CUSTOM_HID*/
-  0x11,         /*bCUSTOM_HIDUSTOM_HID: CUSTOM_HID Class Spec release number*/
+  0x09,         /*bLength: HID Descriptor size*/
+  CUSTOM_HID_DESCRIPTOR_TYPE, /*bDescriptorType: HID*/
+  0x11,         /*bCUSTOM_HIDUSTOM_HID: HID Class Spec release number*/
   0x01,
   0x00,         /*bCountryCode: Hardware target country*/
-  0x01,         /*bNumDescriptors: Number of CUSTOM_HID class descriptors to follow*/
+  0x01,         /*bNumDescriptors: Number of HID class descriptors to follow*/
   0x22,         /*bDescriptorType*/
   USBD_CUSTOM_HID_REPORT_DESC_SIZE,/*wItemLength: Total length of Report descriptor*/
   0x00,
-  /******************** Descriptor of Custom HID endpoints ********************/
+  /******************** Descriptor of HID keyboard endpoints ********************/
   /* 27 */
   0x07,          /*bLength: Endpoint Descriptor size*/
   USB_DESC_TYPE_ENDPOINT, /*bDescriptorType:*/
@@ -193,8 +155,8 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   0x00,         /*bAlternateSetting: Alternate setting*/
   0x02,         /*bNumEndpoints*/
   0xFF,         /*bInterfaceClass: Vendor define*/
-  0x00,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
-  0x00,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
+  0xFF,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
+  0xFF,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
   0x06,         /*iInterface: Index of string descriptor*/
   /******************** Descriptor of WINUSB endpoints ********************/
   /* 43 */
@@ -204,18 +166,18 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   0x02,                    /* bmAttributes: Bulk endpoint */
   WINUSB_EPOUT_SIZE,       /* wMaxPacketSize: 64 Bytes max  */
   0x00,
-  0x0,                     /* bInterval: Polling Interval (0 ms) */
+  0x00,                     /* bInterval: Polling Interval (0 ms) */
   /* 50 */
 
   0x07,                    /*bLength: Endpoint Descriptor size*/
   USB_DESC_TYPE_ENDPOINT,  /*bDescriptorType:*/
   WINUSB_EPIN_ADDR,        /*bEndpointAddress: Endpoint Address (IN)*/
-  0x03,                    /*bmAttributes: Interrupt endpoint*/
+  0x02,                    /*bmAttributes: Bulk endpoint*/
   WINUSB_EPIN_SIZE,        /*wMaxPacketSize: 8 Byte max */
   0x00,
-  0x02,                    /*bInterval: Polling Interval (2 ms)*/
+  0x00,                    /*bInterval: Polling Interval (2 ms)*/
   /* 57 */
-} ;
+};
 
 /* USB CUSTOM_HID device Configuration Descriptor */
 __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_Desc[USB_CUSTOM_HID_DESC_SIZ] __ALIGN_END =
@@ -267,23 +229,24 @@ static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev,
 {
   uint8_t ret = 0;
   USBD_CUSTOM_HID_HandleTypeDef     *hhid;
-  /* Open EP IN */
-  USBD_LL_OpenEP(pdev,
-                 CUSTOM_HID_EPIN_ADDR,
-                 USBD_EP_TYPE_INTR,
-                 CUSTOM_HID_EPIN_SIZE);  
-  
-  /* Open EP IN */
+
+  /* Open WINUSB EP IN */
   USBD_LL_OpenEP(pdev,
                  WINUSB_EPIN_ADDR,
-                 USBD_EP_TYPE_INTR,
+                 USBD_EP_TYPE_BULK,
                  WINUSB_EPIN_SIZE);
 
-  /* Open EP OUT */
+  /* Open WINUSB EP OUT */
   USBD_LL_OpenEP(pdev,
                  WINUSB_EPOUT_ADDR,
                  USBD_EP_TYPE_BULK,
                  WINUSB_EPOUT_SIZE);
+
+  /* Open HID EP IN */
+  USBD_LL_OpenEP(pdev,
+                 CUSTOM_HID_EPIN_ADDR,
+                 USBD_EP_TYPE_INTR,
+                 CUSTOM_HID_EPIN_SIZE);
 
   pdev->pClassData = USBD_malloc(sizeof (USBD_CUSTOM_HID_HandleTypeDef));
   
@@ -315,16 +278,15 @@ static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_CUSTOM_HID_DeInit (USBD_HandleTypeDef *pdev, 
                                  uint8_t cfgidx)
 {
-  /* Close CUSTOM_HID EP IN */
-  USBD_LL_CloseEP(pdev,
-                  CUSTOM_HID_EPIN_ADDR);
-  USBD_LL_CloseEP(pdev,
-                  WINUSB_EPIN_ADDR);
-  
-  /* Close CUSTOM_HID EP OUT */
+  /* Close WINUSB EP */
   USBD_LL_CloseEP(pdev,
                   WINUSB_EPOUT_ADDR);
-  
+  USBD_LL_CloseEP(pdev,
+                  WINUSB_EPIN_ADDR);
+  /* Close HID EP */
+  USBD_LL_CloseEP(pdev,
+                  CUSTOM_HID_EPIN_ADDR);
+
   /* FRee allocated memory */
   if(pdev->pClassData != NULL)
   {
@@ -441,7 +403,7 @@ uint8_t USBD_CUSTOM_HID_SendReport     (USBD_HandleTypeDef  *pdev,
     {
       hhid->state = CUSTOM_HID_BUSY;
       USBD_LL_Transmit (pdev, 
-                        CUSTOM_HID_EPIN_ADDR,                                      
+                        WINUSB_EPIN_ADDR,                                      
                         report,
                         len);
     }

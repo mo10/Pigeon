@@ -68,10 +68,10 @@ Src/usb_device.c \
 Src/usbd_conf.c \
 Src/usbd_desc.c \
 Src/usbd_custom_hid_if.c \
-Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
-Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
-Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
-Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/usbd_customhid.c \
+Src/usbd_core.c \
+Src/usbd_ctlreq.c \
+Src/usbd_ioreq.c \
+Src/usbd_customhid.c \
 Src/tim.c
 
 # ASM sources
@@ -133,9 +133,7 @@ C_INCLUDES =  \
 -IDrivers/STM32F0xx_HAL_Driver/Inc \
 -IDrivers/STM32F0xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
--IDrivers/CMSIS/Include \
--IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc \
--IMiddlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc
+-IDrivers/CMSIS/Include
 
 
 # compile gcc flags
