@@ -1,7 +1,7 @@
-#include "eeprom.h"
+#include "settings.h"
 
 // Factory setting
-EEPROM_TypeDef _eep __attribute__ ((section(".eeprom"),used))= {
+Pigeon_SettingsTypeDef settings __attribute__ ((section(".eeprom"),used))= {
   /* Screen configuration profile index */
   .ProfileIdx = 0,
   /* Key function setting */
@@ -98,6 +98,6 @@ EEPROM_TypeDef _eep __attribute__ ((section(".eeprom"),used))= {
   }
 };
 
-EEPROM_TypeDef * EEPROM_GetData(){
-  return &_eep;
+Pigeon_SettingsTypeDef *Pigeon_GetSettings(){
+  return &settings;
 }

@@ -36,7 +36,8 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
-Src/eeprom.c \
+Src/settings.c \
+Src/usb_comm.c \
 Src/bootloader.c \
 Src/st7735_hal.c \
 Src/fonts.c \

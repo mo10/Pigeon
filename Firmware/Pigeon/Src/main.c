@@ -27,10 +27,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bootloader.h"
-#include "eeprom.h"
-#include "st7735_hal.h"
 #include "usbd_custom_hid_if.h"
+#include "bootloader.h"
+#include "settings.h"
+#include "st7735_hal.h"
+#include "usb_comm.h"
 // #include "usb_cmd.h"
 /* USER CODE END Includes */
 
@@ -132,31 +133,33 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   
-  EEPROM_TypeDef *eep = EEPROM_GetData();
+  Pigeon_SettingsTypeDef *settings = Pigeon_GetSettings();
   // Set Screen Profile
-  ST7735_SetProfile(eep->ProfileIdx);
+  ST7735_SetProfile(settings->ProfileIdx);
   ST7735_Init(&hspi1);
   // Draw Boot Screen
-  ST7735_DrawRLE(eep->ColorTab,eep->RLEData,eep->RLELen);
+  ST7735_DrawRLE(settings->ColorTab, settings->RLEData, settings->RLELen);
   // Set Brightness
-  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, eep->Brightness);
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, settings->Brightness);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    Pigeon_Comm_Poll();
+
     if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
+    {
+      HAL_Delay(20);
+      if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
       {
-        HAL_Delay(20);
-        if(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
+        while(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
         {
-          while(HAL_GPIO_ReadPin(FUN_KEY_GPIO_Port, FUN_KEY_Pin) == GPIO_PIN_SET)
-          {
-          }
-          keyPress();
         }
+        keyPress();
       }
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
