@@ -200,6 +200,8 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 {
   /* USER CODE BEGIN 6 */
+  uint8_t testbuf[13]={0,1,2,3,4,5,6,7,8,9,10,11,12};
+  while(USBD_SendReport_FS(WINUSB_EPIN_ADDR, testbuf, 13)); //发送键值
   return (USBD_OK);
   /* USER CODE END 6 */
 }
@@ -207,16 +209,28 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 /* USER CODE BEGIN 7 */
 /**
   * @brief  Send the report to the Host
+  * @param  epnum: endpoint index
   * @param  report: The report to be sent
   * @param  len: The report length
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-/*
-static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
+int8_t USBD_SendReport_FS(uint8_t epnum, uint8_t *report, uint16_t len)
 {
-  return USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, len);
+  USBD_CUSTOM_HID_HandleTypeDef     *hhid = (USBD_CUSTOM_HID_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  
+  if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED )
+  {
+    if(hhid->state == CUSTOM_HID_IDLE)
+    {
+      hhid->state = CUSTOM_HID_BUSY;
+      USBD_LL_Transmit (&hUsbDeviceFS, 
+                        epnum,
+                        report,
+                        len);
+    }
+  }
+  return USBD_OK;
 }
-*/
 /* USER CODE END 7 */
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */

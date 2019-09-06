@@ -55,8 +55,8 @@
 #define WINUSB_EPIN_ADDR                0x82
 #define WINUSB_EPIN_SIZE                0x08
 
-#define CUSTOM_HID_EPIN_ADDR                 0x81
-#define CUSTOM_HID_EPIN_SIZE                 0x08
+#define HID_KEYBOARD_EPIN_ADDR                 0x81
+#define HID_KEYBOARD_EPIN_SIZE                 0x08
 
 #define USB_CUSTOM_HID_CONFIG_DESC_SIZ       57
 #define USB_CUSTOM_HID_DESC_SIZ              9

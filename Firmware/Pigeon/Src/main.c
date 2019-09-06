@@ -30,7 +30,7 @@
 #include "bootloader.h"
 #include "eeprom.h"
 #include "st7735_hal.h"
-#include "usbd_customhid.h"
+#include "usbd_custom_hid_if.h"
 // #include "usb_cmd.h"
 /* USER CODE END Includes */
 
@@ -88,10 +88,10 @@ void keyPress(){
   for (int i = 0; i < 13; ++i)
   {
     keybuf[2]=sth[i];
-    while(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, keybuf, 8)); //发送键值
+    while(USBD_SendReport_FS(HID_KEYBOARD_EPIN_ADDR, keybuf, 8)); //发送键值
     HAL_Delay(11);
     keybuf[2]=0x00;
-    while(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, keybuf, 8)); //发送键值
+    while(USBD_SendReport_FS(HID_KEYBOARD_EPIN_ADDR, keybuf, 8)); //发送键值
     HAL_Delay(11);
   }
 }

@@ -142,9 +142,9 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   /* 27 */
   0x07,          /*bLength: Endpoint Descriptor size*/
   USB_DESC_TYPE_ENDPOINT, /*bDescriptorType:*/
-  CUSTOM_HID_EPIN_ADDR,     /*bEndpointAddress: Endpoint Address (IN)*/
+  HID_KEYBOARD_EPIN_ADDR,     /*bEndpointAddress: Endpoint Address (IN)*/
   0x03,          /*bmAttributes: Interrupt endpoint*/
-  CUSTOM_HID_EPIN_SIZE, /*wMaxPacketSize: 8 Byte max */
+  HID_KEYBOARD_EPIN_SIZE, /*wMaxPacketSize: 8 Byte max */
   0x00,
   0x02,          /*bInterval: Polling Interval (2 ms)*/
   /************** Descriptor of WINUSB interface ****************/
@@ -244,9 +244,9 @@ static uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev,
 
   /* Open HID EP IN */
   USBD_LL_OpenEP(pdev,
-                 CUSTOM_HID_EPIN_ADDR,
+                 HID_KEYBOARD_EPIN_ADDR,
                  USBD_EP_TYPE_INTR,
-                 CUSTOM_HID_EPIN_SIZE);
+                 HID_KEYBOARD_EPIN_SIZE);
 
   pdev->pClassData = USBD_malloc(sizeof (USBD_CUSTOM_HID_HandleTypeDef));
   
@@ -285,7 +285,7 @@ static uint8_t  USBD_CUSTOM_HID_DeInit (USBD_HandleTypeDef *pdev,
                   WINUSB_EPIN_ADDR);
   /* Close HID EP */
   USBD_LL_CloseEP(pdev,
-                  CUSTOM_HID_EPIN_ADDR);
+                  HID_KEYBOARD_EPIN_ADDR);
 
   /* FRee allocated memory */
   if(pdev->pClassData != NULL)
