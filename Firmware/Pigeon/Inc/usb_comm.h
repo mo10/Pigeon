@@ -18,7 +18,7 @@ typedef struct Pigeon_Comm_Data
 {
   uint8_t Head;
   uint8_t Cmd;
-  uint8_t Len;
+  uint16_t Len;
   uint8_t Data[0];
 } Pigeon_Comm_DataTypeDef;
 

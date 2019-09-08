@@ -53,7 +53,7 @@
 #define WINUSB_EPOUT_SIZE                0x40
 
 #define WINUSB_EPIN_ADDR                0x82
-#define WINUSB_EPIN_SIZE                0x08
+#define WINUSB_EPIN_SIZE                0x40
 
 #define HID_KEYBOARD_EPIN_ADDR                 0x81
 #define HID_KEYBOARD_EPIN_SIZE                 0x08

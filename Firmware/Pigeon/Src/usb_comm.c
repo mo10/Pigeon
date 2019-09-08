@@ -25,10 +25,11 @@ void Pigeon_Comm_Parse(uint8_t *buf,uint32_t len)
       preData->Head = PIGEON_DATA_HEAD;
       preData->Cmd = READ_SETTINGS;
       preData->Len = sizeof(Pigeon_SettingsTypeDef) + currentSettings->RLELen;
-      memcpy(preData->Data, currentSettings, sizeof(preData->Len));
+      memcpy(preData->Data, currentSettings, preData->Len);
       // 等Poll函数调用发送
       data = (uint8_t *)preData;
       dataSize = dataLen;
+      
       break;
     }
   }
@@ -41,9 +42,12 @@ void Pigeon_Comm_Poll()
     uint16_t offset = 0;
     while((dataSize - offset) > 0){
       uint16_t packSize = (dataSize - offset) >= 64 ? 64 : (dataSize - offset);
-      if(packSize > 0)
+      if(packSize > 0){
+        ST7735_FillScreen(ST7735_GREEN);
         USBD_SendReport_FS(WINUSB_EPIN_ADDR, data + offset, packSize);
-      offset += packSize;
+        offset += packSize;
+      }
+      
     }
     // 清理
     dataSize = 0;
