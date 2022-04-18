@@ -88,9 +88,9 @@ ST7735_CMD_BUFTypeDef init_cmd[] = {
                              0x2E, 0x2C, 0x29, 0x2D,
                              0x2E, 0x2E, 0x37, 0x3F,
                              0x00, 0x00, 0x02, 0x10 }},
-  // DISPON Display on
-  { 0, ST7735_NORON, 100, 0, {0}},
   // NORON Normal on
+  { 0, ST7735_NORON, 100, 0, {0}},
+  // DISPON Display on
   { 0, ST7735_DISPON,  10, 0, {0}},
   // End
   { 0, 0, 0, 0, {0}}
